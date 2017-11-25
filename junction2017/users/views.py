@@ -28,6 +28,68 @@ def user_data(request, user_id, location_lat, location_lon):
     # return those 5
     return HttpResponse(to_json(current_user, nearest_users))
 
+# POST request endpoint: users/
+def create_user(request):
+    decoded_response = request.body.decode('utf-8')
+    item = json.loads(decoded_response)
+    scope = "user-library-read user-read-private user-read-email user-read-birthdate"
+    c_id = 'a42f6a4a96e749ddb4b2cc5ee306ee8e'
+    c_secret = '241d01abfd024f749977e2c58fd1e299'
+    uri = 'https://localhost:8888/callback'
+    if len(sys.argv) > 1:
+        username = sys.argv[1]
+    else:
+        print ("Whoops, need your username!")
+        print ("usage: python user_playlists.py [username]")
+        sys.exit()
+
+    token = util.prompt_for_user_token(username, scope, client_id=c_id, client_secret=c_secret,redirect_uri=uri)
+    spotify = spotipy.Spotify(auth=token)
+
+    user_id = spotify.current_user()["id"]
+    location_lon = item["location"]["location_lon"]
+    location_lat = item["location"]["location_lat"]
+
+
+    new_user = User(user_id=user_id, location_lon=location_lon, location_lat=location_lat, token=token)
+
+    new_user.save()
+
+    new_user.nearest_users = get_nearest_users(user_id)
+    new_user.current_track_id = get_current_track(user_id)
+    if current_track_id != None:
+        track = spotify.track(current_track_id)
+        new_user.preview_url = track['preview_url']
+
+    new_user.save()
+
+    json_output = {}
+    json_output['user_id'] = user_id
+
+    return HttpResponse(json_output)
+
+# PUT request endpoint: users/update
+def update_user(request):
+    decoded_response = request.body.decode('utf-8')
+    item = json.loads(decoded_response)
+
+    user_id = item["user_id"]
+    user = User.objects.filter(user_id=user_id).first()
+
+    token = user.token
+    # location
+    user.location_lon = item["location"]["location_lon"]
+    user.location_lat = item["location"]["location_lat"]
+    user.save()
+    # track
+    user.current_track_id = get_current_track(user_id)
+    # nearest users
+    user.nearest_users = get_nearest_users(current_user.user_id)
+    # preview url
+    user.preview_url = item["preview_url"]
+
+    return HttpResponse("200 Success")
+
 def get_nearest_users(current_user_id):
     current_user = User.objects.filter(user_id=current_user_id).first()
     current_user_lon = current_user.location_lon
@@ -132,7 +194,7 @@ def get_current_track_name(user_id):
     track_id = user.current_track_id
     token  = user.token
     output = ""
-    if token:
+    if token and track_id:
         spotify = spotipy.Spotify(auth=token)
         track = spotify.track(track_id)
         track_name = track['name']
@@ -157,42 +219,3 @@ def to_json(current_user, nearest_users):
     json_output['current_track_name'] = get_current_track_name(user.user_id)
     json_output['current_track_color'] = get_colour(current_user.current_track_id)
     return json_output
-
-# POST request endpoint: users/
-def create_user(request):
-    decoded_response = request.body.decode('utf-8')
-    item = json.loads(decoded_response)
-    scope = "user-library-read user-read-private user-read-email user-read-birthdate"
-    c_id = 'a42f6a4a96e749ddb4b2cc5ee306ee8e'
-    c_secret = '241d01abfd024f749977e2c58fd1e299'
-    uri = 'https://localhost:8888/callback'
-    if len(sys.argv) > 1:
-        username = sys.argv[1]
-    else:
-        print ("Whoops, need your username!")
-        print ("usage: python user_playlists.py [username]")
-        sys.exit()
-
-    token = util.prompt_for_user_token(username, scope, client_id=c_id, client_secret=c_secret,redirect_uri=uri)
-    spotify = spotipy.Spotify(auth=token)
-
-    user_id = spotify.current_user()["id"]
-    location_lon = item["location"]["location_lon"]
-    location_lat = item["location"]["location_lat"]
-
-
-    new_user = User(user_id=user_id, location_lon=location_lon, location_lat=location_lat, token=token)
-
-    new_user.save()
-
-    new_user.nearest_users = get_nearest_users(user_id)
-    new_user.current_track_id = get_current_track(user_id)
-    track = spotify.track(current_track_id)
-    new_user.preview_url = track['preview_url']
-
-    new_user.save()
-
-    json_output = {}
-    json_output['user_id'] = user_id
-
-    return HttpResponse(json_output)

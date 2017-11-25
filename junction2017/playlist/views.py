@@ -1,6 +1,6 @@
 from users.models import User
 import spotipy
-import rest_framework
+from rest_framework.decorators import api_view
 
 @api_view(['POST'])
 def create_playlist(request, user_id):
@@ -11,7 +11,7 @@ def create_playlist(request, user_id):
         spotify = spotipy.Spotify(auth=token)
         playlist = spotify.user_playlist_create(user_id, "Cirkel")
         user.playlist_id = playlist["id"]
-        user.save
+        user.save()
 
 
 @api_view(['POST', 'DELETE'])
