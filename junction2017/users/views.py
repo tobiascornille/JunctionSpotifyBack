@@ -10,10 +10,13 @@ import math
 import colorsys
 
 def index(request):
+    request_body = json.loads(request.body)
+    current_user = User(
+        user_id=request_body["user_id"],
+        location_lon=request_body["location_lon"],
+        location_lat=request_body["location_lat"],
+    )
     output = ""
-    current_user = User.objects.first()
-    if current_user == None:
-        return HttpResponse("no users")
     data = get_nearest_users(current_user.user_id)
     for i in data:
         output += "<h1>"+str(i.user_id)+"</h1><br>"
