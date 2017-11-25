@@ -99,6 +99,13 @@ def POST(request):
     print(JsonRepsponse(data=data))
     return JsonRepsponse(data=data)
 
+def GET(request):
+    data
+    user_id = data['user_id']
+    location_lat = data['location_lat']
+    location_lon = data['location_lon']
+    
+
 def return_json(request):
     response_data = {}
     response_data['name'] = ('name')
