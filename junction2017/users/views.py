@@ -108,7 +108,8 @@ def return_json(request):
     return JsonRepsponse({'foo':'bar'})
 
 def get_trackFeatures(sp):
-    trackId = sp.current_user_playing_track()['item']['id']
+    track = sp.current_user_playing_track()
+    trackId = track['item']['id']
     trackFeatures = sp.audio_features(trackId)
     print(trackFeatures)
     trackEnergy = trackFeatures[0]['energy']
@@ -118,26 +119,30 @@ def get_trackFeatures(sp):
     print(trackEnergy)
     print(trackTempo)
     print(trackValence)
-
+    print("colour")
+    print(get_colour(trackEnergy, trackTempo, trackValence))
 
 
 def get_colour(energy, tempo, valence):
     hue = energy * 359;
     saturation = convert_tempo(tempo) * 100;
     value = valence * 100;
-
-    colour = hsv_to_rgb(hue, saturation, value)
+    print("hsv:")
+    print(hue)
+    print(saturation)
+    print(value)
+    colour = colorsys.hsv_to_rgb(hue, saturation, value)
 
     return colour
 
 def convert_tempo(tempo):
     tempovalue = 0
-        if tempo <= 40
-            tempovalue = 40
-        else if tempo >= 170
-            tempovalue = 170
-        else
-            tempovalue = tempo
+    if tempo <= 40:
+        tempovalue = 40
+    elif tempo >= 170:
+        tempovalue = 170
+    else:
+        tempovalue = tempo
 
     tempovalue -= 40
 
