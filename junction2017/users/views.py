@@ -173,7 +173,10 @@ def show_tracks(request):
 
 def GET(request):
     # retrieve id and location
-
+    data
+    user_id = data['user_id']
+    location_lat = data['location_lat']
+    location_lon = data['location_lon']
     # API call for current_track_id
     current_track_id = get_current_track()
     # define 5 nearest_users
