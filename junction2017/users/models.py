@@ -6,3 +6,8 @@ class User(models.Model):
     location_lat = models.FloatField(blank=False)
     current_track_id = models.CharField(max_length=100, blank=False, default=-1)
     nearest_users = models.ManyToManyField('self')
+    token = models.CharField(max_length=200, default=-1)
+    preview_url = models.URLField(default=-1)
+
+    def __str__(self):
+        return self.user_id
