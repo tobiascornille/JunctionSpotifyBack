@@ -32,7 +32,6 @@ ALLOWED_HOSTS = ['95.85.31.26','localhost']
 
 INSTALLED_APPS = [
     'users.apps.UsersConfig',
-    'playlist.apps.PlaylistConfig'
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
