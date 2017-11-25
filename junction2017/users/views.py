@@ -6,11 +6,7 @@ import json
 import spotipy
 import sys
 import spotipy.util as util
-<<<<<<< HEAD
-import django.http import JsonRepsponse
-=======
 import math
->>>>>>> 7824833def0bac537d234b973c306a7261f5b8d1
 
 def get_nearest_users(current_user_id):
     current_user = User.objects.filter(user_id=current_user_id).first()
@@ -64,8 +60,10 @@ def show_tracks(request):
 
 def get_tracks(request):
     scope = "user-library-read user-read-private user-read-email user-read-birthdate"
-    c_id =  '7f6e830e710d4157b2b47a6a76fb7cf5'
-    c_secret = '65ab11b0ad8c43feb801be2675dc175c'
+    # c_id =  '7f6e830e710d4157b2b47a6a76fb7cf5'
+    # c_secret = '65ab11b0ad8c43feb801be2675dc175c'
+    c_id = 'a42f6a4a96e749ddb4b2cc5ee306ee8e'
+    c_secret = '241d01abfd024f749977e2c58fd1e299'
     uri = 'https://localhost:8888/callback'
     if len(sys.argv) > 1:
         username = sys.argv[1]
@@ -91,15 +89,16 @@ def get_tracks(request):
                     output += show_tracks(tracks)
     else:
         output = "something went wrong"
+
+    get_trackFeatures(sp)
     return HttpResponse(output)
 
 def POST(request):
     data = json.load(request)
     print(JsonRepsponse(data=data))
     return JsonRepsponse(data=data)
-<<<<<<< HEAD
 
-def return_jason(request)
+def return_json(request):
     response_data = {}
     response_data['name'] = ('name')
     for i in range(0,5):
@@ -107,20 +106,24 @@ def return_jason(request)
 
     return JsonRepsponse({'foo':'bar'})
 
-def get_trackFeatures(trackId)
+def get_trackFeatures(sp):
+    trackId = sp.current_user_playing_track()['item']['id']
     trackFeatures = sp.audio_features(trackId)
-    trackEnergy = trackFeatures.energy
-    trackTempo = trackFeatures.tempo
-    trackValence = trackFeatures.valence
+    print(trackFeatures)
+    trackEnergy = trackFeatures[0]['energy']
+    trackTempo = trackFeatures[0]['tempo']
+    trackValence = trackFeatures[0]['valence']
+
+    print(trackEnergy)
+    print(trackTempo)
+    print(trackValence)
 
 
 
-def get_colour()
+def get_colour():
     colour = 0
     return colour
 
     # #PROCESS THE POST REQUEST @TOBIAS
     # @api_view(['POST'])
     # def post_location(request, format=None):
-=======
->>>>>>> 7824833def0bac537d234b973c306a7261f5b8d1
