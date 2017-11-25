@@ -6,6 +6,7 @@ import json
 import spotipy
 import sys
 import spotipy.util as util
+import math
 
 def get_nearest_users(current_user_id):
     current_user = User.objects.filter(user_id=current_user_id).first()
