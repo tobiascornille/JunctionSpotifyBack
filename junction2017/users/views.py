@@ -9,6 +9,16 @@ import spotipy.util as util
 import math
 import colorsys
 
+def index(request):
+    output = ""
+    current_user = User.objects.first()
+    if current_user == None:
+        return HttpResponse("no users")
+    data = get_nearest_users(current_user.user_id)
+    for i in data:
+        output += "<h1>"+str(i.user_id)+"</h1><br>"
+    return HttpResponse(output)
+
 def get_nearest_users(current_user_id):
     current_user = User.objects.filter(user_id=current_user_id).first()
     current_user_lon = current_user.location_lon
@@ -42,23 +52,55 @@ def distance_between(u1, u2):
 
     return gpxpy.geo.haversine_distance(u1_lat, u1_lon, u2_lat, u2_lon)
 
-def index(request):
-    output = ""
-    current_user = User.objects.first()
-    if current_user == None:
-        return HttpResponse("no users")
-    data = get_nearest_users(current_user.user_id)
-    for i in data:
-        output += "<h1>"+str(i.user_id)+"</h1><br>"
-    return HttpResponse(output)
+def return_json(request):
+    response_data = {}
+    response_data['name'] = ('name')
+    for i in range(0,5):
+        response_data['track' + i] = ('track id')
 
-def show_tracks(request):
-    output = ""
-    for i, item in enumerate(tracks['items']):
-        track = item['track']
-        output += "<h1>" + str(track['artists'][0]['name']) + '</h1><br>' + '<h1>' + str(track['name']) + '</h1><br>'
-    return output
+    return JsonRepsponse({'foo':'bar'})
 
+def get_trackFeatures(sp):
+    track = sp.current_user_playing_track()
+    trackId = track['item']['id']
+    trackFeatures = sp.audio_features(trackId)
+    print(trackFeatures)
+    trackEnergy = trackFeatures[0]['energy']
+    trackTempo = trackFeatures[0]['tempo']
+    trackValence = trackFeatures[0]['valence']
+
+    print(trackEnergy)
+    print(trackTempo)
+    print(trackValence)
+    print("colour")
+    print(get_colour(trackEnergy, trackTempo, trackValence))
+
+def get_colour(energy, tempo, valence):
+    hue = energy * 360;
+    saturation = convert_tempo(tempo);
+    value = valence;
+    print(hue)
+    print(saturation)
+    print(value)
+    colour = tuple(int(i * 255) for i in colorsys.hsv_to_rgb(hue, saturation, value))
+    return colour
+
+def convert_tempo(tempo):
+    tempovalue = 0
+    if tempo <= 40:
+        tempovalue = 40
+    elif tempo >= 170:
+        tempovalue = 170
+    else:
+        tempovalue = tempo
+
+    tempovalue -= 40
+
+    tempovalue = tempovalue / 130
+
+    return tempovalue
+
+#test function
 def get_tracks(request):
     scope = "user-library-read user-read-private user-read-email user-read-birthdate"
     # c_id =  '7f6e830e710d4157b2b47a6a76fb7cf5'
@@ -94,62 +136,50 @@ def get_tracks(request):
     get_trackFeatures(sp)
     return HttpResponse(output)
 
-def POST(request):
-    data = json.load(request)
-    print(JsonRepsponse(data=data))
-    return JsonRepsponse(data=data)
-
-def return_json(request):
-    response_data = {}
-    response_data['name'] = ('name')
-    for i in range(0,5):
-        response_data['track' + i] = ('track id')
-
-    return JsonRepsponse({'foo':'bar'})
-
-def get_trackFeatures(sp):
-    track = sp.current_user_playing_track()
-    trackId = track['item']['id']
-    trackFeatures = sp.audio_features(trackId)
-    print(trackFeatures)
-    trackEnergy = trackFeatures[0]['energy']
-    trackTempo = trackFeatures[0]['tempo']
-    trackValence = trackFeatures[0]['valence']
-
-    print(trackEnergy)
-    print(trackTempo)
-    print(trackValence)
-    print("colour")
-    print(get_colour(trackEnergy, trackTempo, trackValence))
-
-
-def get_colour(energy, tempo, valence):
-    hue = energy * 359;
-    saturation = convert_tempo(tempo) * 100;
-    value = valence * 100;
-    print("hsv:")
-    print(hue)
-    print(saturation)
-    print(value)
-    colour = colorsys.hsv_to_rgb(hue, saturation, value)
-
-    return colour
-
-def convert_tempo(tempo):
-    tempovalue = 0
-    if tempo <= 40:
-        tempovalue = 40
-    elif tempo >= 170:
-        tempovalue = 170
+def get_current_track():
+    scope = "user-library-read user-read-private user-read-email user-read-birthdate"
+    # c_id =  '7f6e830e710d4157b2b47a6a76fb7cf5'
+    # c_secret = '65ab11b0ad8c43feb801be2675dc175c'
+    c_id = 'a42f6a4a96e749ddb4b2cc5ee306ee8e'
+    c_secret = '241d01abfd024f749977e2c58fd1e299'
+    uri = 'https://localhost:8888/callback'
+    if len(sys.argv) > 1:
+        username = sys.argv[1]
     else:
-        tempovalue = tempo
+        print ("Whoops, need your username!")
+        print ("usage: python user_playlists.py [username]")
+        sys.exit()
 
-    tempovalue -= 40
+    token = util.prompt_for_user_token(username, scope, client_id=c_id, client_secret=c_secret,redirect_uri=uri)
+    output = ""
+    if token:
+        sp = spotipy.Spotify(auth=token)
+        current_song = sp.current_user_playing_track()
+        current_song_id = current_song['item']['id']
+        return current_song_id
 
-    tempovalue = tempovalue / 130
+    print("something went wrong")
+    return None
 
-    return tempovalue
+def show_tracks(request):
+    output = ""
+    for i, item in enumerate(tracks['items']):
+        track = item['track']
+        output += "<h1>" + str(track['artists'][0]['name']) + '</h1><br>' + '<h1>' + str(track['name']) + '</h1><br>'
+    return output
 
-    # #PROCESS THE POST REQUEST @TOBIAS
-    # @api_view(['POST'])
-    # def post_location(request, format=None):
+def GET(request):
+    # retrieve id and location
+
+    # API call for current_track_id
+    current_track_id = get_current_track()
+    # define 5 nearest_users
+
+    # return those 5
+
+
+#unused
+# def POST(request):
+#     data = json.load(request)
+#     print(JsonRepsponse(data=data))
+#     return JsonRepsponse(data=data)
