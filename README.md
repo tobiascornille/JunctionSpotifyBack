@@ -7,5 +7,3 @@ The attributes of these songs will determine your colour. Watch as your colour c
 The final product is available at https://cirkelapp.com
 
 The back-end was written in Django, using the REST framework to communicate with the front-end, which you can check here: https://github.com/sebastianjvf/junction-spotify-front
-
-Our team existed of @ProLoD, @LordBrolex, @sebastianjvf, Sanne Jelink and @tobiascornille.
