@@ -6,6 +6,7 @@ import json
 import spotipy
 import sys
 import spotipy.util as util
+import django.http import JsonRepsponse
 
 def get_nearest_users(current_user_id):
     current_user = User.objects.filter(user_id=current_user_id).first()
@@ -97,6 +98,26 @@ def POST(request):
     data = json.load(request)
     print(JsonRepsponse(data=data))
     return JsonRepsponse(data=data)
+
+def return_jason(request)
+    response_data = {}
+    response_data['name'] = ('name')
+    for i in range(0,5):
+        response_data['track' + i] = ('track id')
+
+    return JsonRepsponse({'foo':'bar'})
+
+def get_trackFeatures(trackId)
+    trackFeatures = sp.audio_features(trackId)
+    trackEnergy = trackFeatures.energy
+    trackTempo = trackFeatures.tempo
+    trackValence = trackFeatures.valence
+
+
+
+def get_colour()
+    colour = 0
+    return colour
 
     # #PROCESS THE POST REQUEST @TOBIAS
     # @api_view(['POST'])
