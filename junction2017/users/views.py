@@ -10,7 +10,7 @@ import math
 import colorsys
 import requests
 
-
+# GET request endpoint: users/ID&lat&lon
 def user_data(request, user_id, location_lat, location_lon):
     # get current_user
     current_user = User.objects.all().filter(user_id=user_id).first()
@@ -18,7 +18,7 @@ def user_data(request, user_id, location_lat, location_lon):
     current_user.location_lat = location_lat
     current_user.location_lon = location_lon
     # API call for current_track_id
-    current_track_id = get_current_track()
+    current_track_id = get_current_track(user_id)
     # define 5 nearest_users
     nearest_users = get_nearest_users(current_user.user_id)
     #update nearest users
@@ -100,21 +100,23 @@ def convert_tempo(tempo):
     return tempovalue
 
 
-def get_current_track():
-    scope = "user-library-read user-read-private user-read-email user-read-birthdate"
-    # c_id =  '7f6e830e710d4157b2b47a6a76fb7cf5'
-    # c_secret = '65ab11b0ad8c43feb801be2675dc175c'
-    c_id = 'a42f6a4a96e749ddb4b2cc5ee306ee8e'
-    c_secret = '241d01abfd024f749977e2c58fd1e299'
-    uri = 'https://localhost:8888/callback'
-    if len(sys.argv) > 1:
-        username = sys.argv[1]
-    else:
-        print ("Whoops, need your username!")
-        print ("usage: python user_playlists.py [username]")
-        sys.exit()
-
-    token = util.prompt_for_user_token(username, scope, client_id=c_id, client_secret=c_secret,redirect_uri=uri)
+def get_current_track(user_id):
+    user = User.objects.filter(user_id=user_id).first()
+    token = user.token
+    # scope = "user-library-read user-read-private user-read-email user-read-birthdate"
+    # # c_id =  '7f6e830e710d4157b2b47a6a76fb7cf5'
+    # # c_secret = '65ab11b0ad8c43feb801be2675dc175c'
+    # c_id = 'a42f6a4a96e749ddb4b2cc5ee306ee8e'
+    # c_secret = '241d01abfd024f749977e2c58fd1e299'
+    # uri = 'https://localhost:8888/callback'
+    # if len(sys.argv) > 1:
+    #     username = sys.argv[1]
+    # else:
+    #     print ("Whoops, need your username!")
+    #     print ("usage: python user_playlists.py [username]").0
+    #     sys.exit()
+    #
+    # token = util.prompt_for_user_token(username, scope, client_id=c_id, client_secret=c_secret,redirect_uri=uri)
     output = ""
     if token:
         sp = spotipy.Spotify(auth=token)
@@ -156,12 +158,41 @@ def to_json(current_user, nearest_users):
     json_output['current_track_color'] = get_colour(current_user.current_track_id)
     return json_output
 
-def create_user(request, ):
+# POST request endpoint: users/
+def create_user(request):
+    decoded_response = request.body.decode('utf-8')
     item = json.loads(decoded_response)
-    user_id = item.get("user_id")
-    location_lon = item.get("location_lat")
-    location_lat = item.get("location_lat")
+    scope = "user-library-read user-read-private user-read-email user-read-birthdate"
+    c_id = 'a42f6a4a96e749ddb4b2cc5ee306ee8e'
+    c_secret = '241d01abfd024f749977e2c58fd1e299'
+    uri = 'https://localhost:8888/callback'
+    if len(sys.argv) > 1:
+        username = sys.argv[1]
+    else:
+        print ("Whoops, need your username!")
+        print ("usage: python user_playlists.py [username]")
+        sys.exit()
 
-    new_user = User(user_id=user_id, location_lon=location_lon, location_lat=location_lat, token=token, track_color=track_color, current_track_id=current_track_id,nearest_users=nearest_users, preview_url=preview_url)
+    token = util.prompt_for_user_token(username, scope, client_id=c_id, client_secret=c_secret,redirect_uri=uri)
+    spotify = spotipy.Spotify(auth=token)
 
-    return True
+    user_id = spotify.current_user()["id"]
+    location_lon = item["location"]["location_lon"]
+    location_lat = item["location"]["location_lat"]
+
+
+    new_user = User(user_id=user_id, location_lon=location_lon, location_lat=location_lat, token=token)
+
+    new_user.save()
+
+    new_user.nearest_users = get_nearest_users(user_id)
+    new_user.current_track_id = get_current_track(user_id)
+    track = spotify.track(current_track_id)
+    new_user.preview_url = track['preview_url']
+
+    new_user.save()
+
+    json_output = {}
+    json_output['user_id'] = user_id
+
+    return HttpResponse(json_output)
