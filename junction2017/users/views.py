@@ -7,6 +7,7 @@ import spotipy
 import sys
 import spotipy.util as util
 import math
+import colorsys
 
 def get_nearest_users(current_user_id):
     current_user = User.objects.filter(user_id=current_user_id).first()
@@ -120,9 +121,29 @@ def get_trackFeatures(sp):
 
 
 
-def get_colour():
-    colour = 0
+def get_colour(energy, tempo, valence):
+    hue = energy * 359;
+    saturation = convert_tempo(tempo) * 100;
+    value = valence * 100;
+
+    colour = hsv_to_rgb(hue, saturation, value)
+
     return colour
+
+def convert_tempo(tempo):
+    tempovalue = 0
+        if tempo <= 40
+            tempovalue = 40
+        else if tempo >= 170
+            tempovalue = 170
+        else
+            tempovalue = tempo
+
+    tempovalue -= 40
+
+    tempovalue = tempovalue / 130
+
+    return tempovalue
 
     # #PROCESS THE POST REQUEST @TOBIAS
     # @api_view(['POST'])
