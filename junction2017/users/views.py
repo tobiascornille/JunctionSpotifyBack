@@ -122,9 +122,9 @@ def get_trackFeatures(sp):
 
 
 def get_colour(energy, tempo, valence):
-    hue = energy * 359;
-    saturation = convert_tempo(tempo) * 100;
-    value = valence * 100;
+    hue = energy * 360;
+    saturation = convert_tempo(tempo);
+    value = valence;
 
     colour = hsv_to_rgb(hue, saturation, value)
 
