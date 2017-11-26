@@ -2,9 +2,7 @@ from django.http import HttpResponse
 from users.models import User
 import spotipy
 import json
-# from rest_framework.decorators import api_view
 
-#@api_view(['POST'])
 def create_playlist(request):
     # Create a new playlist
     decoded_response = request.body.decode('utf-8')
@@ -21,7 +19,6 @@ def create_playlist(request):
     return HttpResponse("Fail")
 
 
-#@api_view(['POST', 'DELETE'])
 def modify_track(request):
     # Add or delete a track to the user's playlist
     decoded_response = request.body.decode('utf-8')

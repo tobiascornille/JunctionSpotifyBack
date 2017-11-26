@@ -1,11 +1,8 @@
 from django.http import HttpResponse
 from users.models import User
-# pip install gpxpy --user
 import gpxpy.geo
 import json
 import spotipy
-import sys
-import spotipy.util_custom as util
 import math
 import colorsys
 import requests
