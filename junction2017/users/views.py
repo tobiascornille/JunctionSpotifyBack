@@ -82,8 +82,6 @@ def create_user(request):
         'client_secret': 'fd192986fc93475983541c7ff4634b18',
         'response_type': 'code',
         'redirect_uri': 'http://95.85.31.26/users/callback',
-        # 'redirect_uri': 'cirkelapp.com/users/callback',
-        # 'redirect_uri': 'http://95.85.31.26/users/callback',
         'scope': 'user-library-read user-read-private user-read-currently-playing user-read-recently-played playlist-modify-public playlist-modify-private',
         'show_dialog': 'true'
     }
@@ -208,9 +206,13 @@ def get_current_track(user_id):
     }
 
     if token:
+        print("token")
+        print(token)
         current_song = requests.get('https://api.spotify.com/v1/me/player/currently-playing', headers=headers)
 
         if current_song:
+            print("current song")
+            print(current_song)
             current_song_id = current_song['item']['id']
             return current_song_id
 
@@ -229,6 +231,8 @@ def get_current_track_name(user_id):
     track_id = user.current_track_id
     token  = user.token
     output = ""
+    print("token")
+    print(token)
     if token and track_id:
         spotify = spotipy.Spotify(auth=token)
         track = spotify.track(track_id)

@@ -28,6 +28,9 @@ DEBUG = True
 ALLOWED_HOSTS = ['95.85.31.26','localhost']
 
 
+CORS_ORIGIN_ALLOW_ALL=True
+
+
 # Application definition
 
 INSTALLED_APPS = [
