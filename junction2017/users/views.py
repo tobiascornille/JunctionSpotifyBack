@@ -29,6 +29,7 @@ def authentication_spotify(request):
 
     r = requests.post("https://accounts.spotify.com/api/token", data=payload, headers=headers)
 
+
     token = r.json()["access_token"]
     print("token")
     print(token)
@@ -83,7 +84,9 @@ def create_user(request):
         'response_type': 'code',
         'redirect_uri': 'http://95.85.31.26/users/callback',
         'scope': 'user-library-read user-read-private user-read-currently-playing user-read-recently-played playlist-modify-public playlist-modify-private',
-        'show_dialog': 'true'
+        'show_dialog': 'true',
+        'withCredentials': 'false',
+        'Access-Control-Allow-Origin': 'true',
     }
     r = requests.get('https://accounts.spotify.com/authorize', params=payload)
     print("redirect to")
