@@ -211,13 +211,13 @@ def get_current_track(user_id):
         current_song = requests.get('https://api.spotify.com/v1/me/player/currently-playing', headers=headers)
 
         if current_song:
-            current_song_id = current_song['item']['id']
+            current_song_id = current_song.json()['item']['id']
             return current_song_id
 
         current_song = requests.get('https://api.spotify.com/v1/me/player/recently-played?limit=1', headers=headers)
 
         if current_song:
-            current_song_id = current_song['items'][0]['track']['id']
+            current_song_id = current_song.json()['items'][0]['track']['id']
             return current_song_id
 
     print("something went wrong")
