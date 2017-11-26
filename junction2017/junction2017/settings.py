@@ -27,10 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['95.85.31.26','localhost']
 
-
-CORS_ORIGIN_ALLOW_ALL=True
-
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -43,11 +39,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'junction2017',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     #'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -125,3 +123,12 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_WHITELIST = (
+    'http://95.85.31.26/',
+    'http://95.85.31.26/users/',
+    'http://cirkelapp.com',
+    'https://accounts.spotify.com'
+)
