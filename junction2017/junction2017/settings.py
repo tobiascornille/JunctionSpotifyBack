@@ -130,4 +130,5 @@ CORS_ORIGIN_WHITELIST = (
     'http://95.85.31.26/',
     'http://95.85.31.26/users/',
     'http://cirkelapp.com',
+    'https://accounts.spotify.com'
 )
