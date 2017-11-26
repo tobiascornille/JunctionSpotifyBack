@@ -206,11 +206,11 @@ def get_current_track(user_id):
 
     if token:
         sp = spotipy.Spotify(auth=token)
-        current_song = sp.current_user_playing_track()
+        #current_song = sp.current_user_playing_track()
 
-        if current_song:
-            current_song_id = current_song['item']['id']
-            return current_song_id
+        #if current_song:
+        #    current_song_id = current_song['item']['id']
+        #    return current_song_id
 
         current_song = sp.current_user_recently_played(limit=1)
 
