@@ -13,31 +13,73 @@ from django.shortcuts import redirect
 
 
 def authentication_spotify(request):
-    print("hey")
-    return redirect('https://sebastianjvf.github.io/junction-spotify-front/')
+    code = request.GET.get('code',None)
+    print("code")
+    print(code)
+    print()
+
+    payload = {
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": "http://localhost:8000/users/callback",
+        "client_id": "e66d17b67e584655926e41426c2a5d15",
+        "client_secret": "fd192986fc93475983541c7ff4634b18",
+    }
+
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+    }
+
+    r = requests.post("https://accounts.spotify.com/api/token", data=payload, headers=headers)
+
+    token = r.json()["access_token"]
+    print("token")
+    print(token)
+    print()
+
+    spotify = spotipy.Spotify(auth=token)
+
+    user_id = spotify.current_user()["id"]
+
+
+    new_user = User(user_id=user_id, token=token)
+
+    new_user.save()
+
+    current_track_id = get_current_track(user_id)
+    new_user.current_track_id = current_track_id
+
+    if current_track_id != None:
+        track = spotify.track(current_track_id)
+        new_user.preview_url = track['preview_url']
+
+    new_user.save()
+
+    return redirect('https://sebastianjvf.github.io/junction-spotify-front/', {'user_id':user_id})
 
 
 # GET request endpoint: users/ID&lat&lon
-def user_data(request, user_id, location_lat, location_lon):
-    # get current_user
+def user_data(request, user_id):
     current_user = User.objects.all().filter(user_id=user_id).first()
-    # update location
-    current_user.location_lat = location_lat
-    current_user.location_lon = location_lon
-    # API call for current_track_id
-    current_track_id = get_current_track(user_id)
-    # define 5 nearest_users
-    nearest_users = get_nearest_users(current_user.user_id)
-    #update nearest users
-    current_user.nearest_users = nearest_users
-    # save changes to current user in database
-    current_user.save()
-    # return those 5
-    return HttpResponse(to_json(current_user, nearest_users))
+    nearest_users = current_user.nearest_users
+    json_output = {}
+    json_output['nearest_users'] = []
+    for user in nearest_users.all():
+        user_data = {}
+        user_data['track_id'] = user.current_track_id
+        user_data['track_name'] = get_current_track_name(user.user_id)
+        user_data['track_color'] = get_colour(user.user_id, user.current_track_id)
+        user_data['url_preview'] = user.preview_url
+        json_output['nearest_users'].append(user_data)
+    json_output['current_track_id'] = current_user.current_track_id
+    json_output['current_track_name'] = get_current_track_name(current_user.user_id)
+    json_output['current_track_color'] = get_colour(current_user.user_id, current_user.current_track_id)
+    json_output['url_preview'] = current_user.preview_url
+    return HttpResponse(json.dumps(json_output))
 
 # POST request endpoint: users/
 def create_user(request):
-
+    print("hey")
     payload = {
         'client_id': 'e66d17b67e584655926e41426c2a5d15',
         'client_secret': 'fd192986fc93475983541c7ff4634b18',
@@ -45,90 +87,19 @@ def create_user(request):
         'redirect_uri': 'http://localhost:8000/users/callback',
         # 'redirect_uri': 'cirkelapp.com/users/callback',
         # 'redirect_uri': 'http://95.85.31.26/users/callback',
-        'scope': 'user-library-read user-read-private user-read-email user-read-birthdate',
+        'scope': 'user-library-read user-read-private user-read-currently-playing user-read-recently-played playlist-modify-public playlist-modify-private',
         'show_dialog': 'true'
     }
     r = requests.get('https://accounts.spotify.com/authorize', params=payload)
     print("redirect to")
     print(r.url)
     return(redirect(r.url))
-    # if len(sys.argv) > 1:
-    #     username = sys.argv[1]
-    # else:
-    #     print ("Whoops, need your username!")
-    #     print ("usage: python user_playlists.py [username]")
-    #     sys.exit()
-    #
-    # token = util.prompt_for_user_token(username, scope, client_id=c_id, client_secret=c_secret,redirect_uri=uri)
-    # spotify = spotipy.Spotify(auth=token)
-    # print("token")
-    # print(token)
-    # print()
-    # user_id = spotify.current_user()["id"]
-    # location_lon = item["location"]["location_lon"]
-    # location_lat = item["location"]["location_lat"]
-    #
-    #
-    # new_user = User(user_id=user_id, location_lon=location_lon, location_lat=location_lat, token=token)
-    #
-    # new_user.save()
-    #
-    # new_user.nearest_users = get_nearest_users(user_id)
-    # new_user.current_track_id = get_current_track(user_id)
-    # if current_track_id != None:
-    #     track = spotify.track(current_track_id)
-    #     new_user.preview_url = track['preview_url']
-    #
-    # new_user.save()
-    #
-    # json_output = {}
-    # json_output['user_id'] = user_id
-    #
-    # return HttpResponse(json_output)
-
-def create_user(request):
-    decoded_response = request.body.decode('utf-8')
-    item = json.loads(decoded_response)
-    scope = "user-library-read user-read-private user-read-email user-read-birthdate"
-    c_id = 'a42f6a4a96e749ddb4b2cc5ee306ee8e'
-    c_secret = '241d01abfd024f749977e2c58fd1e299'
-    uri = 'https://localhost:8888/callback'
-    if len(sys.argv) > 1:
-        username = sys.argv[1]
-    else:
-        print ("Whoops, need your username!")
-        print ("usage: python user_playlists.py [username]")
-        sys.exit()
-
-    token = util.prompt_for_user_token(username, scope, client_id=c_id, client_secret=c_secret,redirect_uri=uri)
-    spotify = spotipy.Spotify(auth=token)
-
-    user_id = spotify.current_user()["id"]
-    location_lon = item["location"]["location_lon"]
-    location_lat = item["location"]["location_lat"]
-
-
-    new_user = User(user_id=user_id, location_lon=location_lon, location_lat=location_lat, token=token)
-
-    new_user.save()
-
-    new_user.nearest_users = get_nearest_users(user_id)
-    new_user.current_track_id = get_current_track(user_id)
-    if current_track_id != None:
-        track = spotify.track(current_track_id)
-        new_user.preview_url = track['preview_url']
-
-    new_user.save()
-
-    json_output = {}
-    json_output['user_id'] = user_id
-
-    return HttpResponse(json_output)
 
 # PUT request endpoint: users/update
 def update_user(request):
     decoded_response = request.body.decode('utf-8')
     item = json.loads(decoded_response)
+
 
     user_id = item["user_id"]
     user = User.objects.filter(user_id=user_id).first()
@@ -139,11 +110,18 @@ def update_user(request):
     user.location_lat = item["location"]["location_lat"]
     user.save()
     # track
-    user.current_track_id = get_current_track(user_id)
+    current_track_id = get_current_track(user_id)
+    user.current_track_id = current_track_id
     # nearest users
-    user.nearest_users = get_nearest_users(current_user.user_id)
+    user.nearest_users = get_nearest_users(user_id)
     # preview url
-    user.preview_url = item["preview_url"]
+    if token:
+        sp = spotipy.Spotify(auth=token)
+        user.preview_url = sp.track(current_track_id)['preview_url']
+    else:
+        user.preview_url = None
+
+    user.save()
 
     return HttpResponse("200 Success")
 
@@ -161,7 +139,8 @@ def get_nearest_users(current_user_id):
         min_distance = math.inf
         closest_user = None
         for user in users:
-            if user != current_user and user not in nearest_users:
+            if user.user_id != current_user.user_id and user not in nearest_users:
+                print("ik ben hier")
                 distance = distance_between(current_user, user)
                 if distance < min_distance:
                     min_distance = distance
@@ -188,20 +167,24 @@ def return_json(request):
 
     return JsonRepsponse({'foo':'bar'})
 
-def get_colour(track_id):
-    spotify = spotipy.Spotify()
-    track = spotify.track(track_id)
-    trackFeatures = spotify.audio_features(trackId)
+def get_colour(user_id, track_id):
+    user = User.objects.filter(user_id=user_id).first()
+    token = user.token
+    if token:
+        spotify = spotipy.Spotify(auth=token)
+        track = spotify.track(track_id)
+        trackFeatures = spotify.audio_features(track_id)
 
-    trackEnergy = trackFeatures[0]['energy']
-    trackTempo = trackFeatures[0]['tempo']
-    trackValence = trackFeatures[0]['valence']
+        track_energy = trackFeatures[0]['energy']
+        track_tempo = trackFeatures[0]['tempo']
+        track_valence = trackFeatures[0]['valence']
 
-    hue = energy * 360;
-    saturation = convert_tempo(tempo);
-    value = valence;
-    colour = tuple(int(i * 255) for i in colorsys.hsv_to_rgb(hue, saturation, value))
-    return colour
+        hue = track_energy * 360;
+        saturation = convert_tempo(track_tempo);
+        value = track_valence;
+        colour = tuple(int(i * 255) for i in colorsys.hsv_to_rgb(hue, saturation, value))
+        return colour
+    return None
 
 def convert_tempo(tempo):
     tempovalue = 0
@@ -222,29 +205,27 @@ def convert_tempo(tempo):
 def get_current_track(user_id):
     user = User.objects.filter(user_id=user_id).first()
     token = user.token
-    # scope = "user-library-read user-read-private user-read-email user-read-birthdate"
-    # # c_id =  '7f6e830e710d4157b2b47a6a76fb7cf5'
-    # # c_secret = '65ab11b0ad8c43feb801be2675dc175c'
-    # c_id = 'a42f6a4a96e749ddb4b2cc5ee306ee8e'
-    # c_secret = '241d01abfd024f749977e2c58fd1e299'
-    # uri = 'https://localhost:8888/callback'
-    # if len(sys.argv) > 1:
-    #     username = sys.argv[1]
-    # else:
-    #     print ("Whoops, need your username!")
-    #     print ("usage: python user_playlists.py [username]").0
-    #     sys.exit()
-    #
-    # token = util.prompt_for_user_token(username, scope, client_id=c_id, client_secret=c_secret,redirect_uri=uri)
     output = ""
+
     if token:
         sp = spotipy.Spotify(auth=token)
         current_song = sp.current_user_playing_track()
-        current_song_id = current_song['item']['id']
-        return current_song_id
+
+        if current_song:
+            current_song_id = current_song['item']['id']
+            return current_song_id
+
+        current_song = sp.current_user_recently_played(limit=1)
+
+        if current_song:
+            current_song_id = current_song['items'][0]['track']['id']
+            return current_song_id
+
+
 
     print("something went wrong")
     return None
+
 
 def get_current_track_name(user_id):
     user = User.objects.filter(user_id=user_id).first()
@@ -260,61 +241,6 @@ def get_current_track_name(user_id):
     print("something went wrong")
     return None
 
-
-#helper
-
-def to_json(current_user, nearest_users):
-    json_output = {}
-    json_output['nearest_users'] = []
-    for user in nearest_users:
-        user_data = {}
-        user_data['track_id'] = user.current_track_id
-        user_data['track_name'] = get_current_track_name(user.user_id)
-        user_data['track_color'] = get_colour(user.current_track_id)
-        json_output['nearest_users'].append(user_data)
-    json_output['current_track_id'] = current_user.current_track_id
-    json_output['current_track_name'] = get_current_track_name(user.user_id)
-    json_output['current_track_color'] = get_colour(current_user.current_track_id)
-    return json_output
-
-def create_user(request):
-    decoded_response = request.body.decode('utf-8')
-    item = json.loads(decoded_response)
-    scope = "user-library-read user-read-private user-read-email user-read-birthdate"
-    c_id = 'a42f6a4a96e749ddb4b2cc5ee306ee8e'
-    c_secret = '241d01abfd024f749977e2c58fd1e299'
-    uri = 'https://localhost:8888/callback'
-    if len(sys.argv) > 1:
-        username = sys.argv[1]
-    else:
-        print ("Whoops, need your username!")
-        print ("usage: python user_playlists.py [username]")
-        sys.exit()
-
-    token = util.prompt_for_user_token(username, scope, client_id=c_id, client_secret=c_secret,redirect_uri=uri)
-    spotify = spotipy.Spotify(auth=token)
-
-    user_id = spotify.current_user()["id"]
-    location_lon = item["location"]["location_lon"]
-    location_lat = item["location"]["location_lat"]
-
-
-    new_user = User(user_id=user_id, location_lon=location_lon, location_lat=location_lat, token=token)
-
-    new_user.save()
-
-    new_user.nearest_users = get_nearest_users(user_id)
-    new_user.current_track_id = get_current_track(user_id)
-    if current_track_id != None:
-        track = spotify.track(current_track_id)
-        new_user.preview_url = track['preview_url']
-
-    new_user.save()
-
-    json_output = {}
-    json_output['user_id'] = user_id
-
-    return HttpResponse(json_output)
 
 def to_json_test():
     json_output = {}

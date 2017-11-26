@@ -31,7 +31,7 @@ def modify_track(request):
     tracks = [track_id]
     user = User.objects.filter(user_id=user_id).first()
     token = user.token
-    playlist_id = user.playlist
+    playlist_id = user.playlist_id
     results="Somethings wrong :/"
 
     if token:
