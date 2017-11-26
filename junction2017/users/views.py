@@ -203,22 +203,22 @@ def get_current_track(user_id):
     user = User.objects.filter(user_id=user_id).first()
     token = user.token
     output = ""
+    headers = {
+        "Authorization": "Bearer " + token,
+    }
 
     if token:
-        sp = spotipy.Spotify(auth=token)
-        current_song = sp.current_user_playing_track()
+        current_song = requests.get('https://api.spotify.com/v1/me/player/currently-playing', headers=headers)
 
         if current_song:
             current_song_id = current_song['item']['id']
             return current_song_id
 
-        current_song = sp.current_user_recently_played(limit=1)
+        current_song = requests.get('https://api.spotify.com/v1/me/player/recently-played?limit=1', headers=headers)
 
         if current_song:
             current_song_id = current_song['items'][0]['track']['id']
             return current_song_id
-
-
 
     print("something went wrong")
     return None
