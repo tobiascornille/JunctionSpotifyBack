@@ -18,7 +18,7 @@ def authentication_spotify(request):
     payload = {
         "grant_type": "authorization_code",
         "code": code,
-        "redirect_uri": "http://localhost:8000/users/callback",
+        "redirect_uri": "http://95.85.31.26/users/callback",
         "client_id": "e66d17b67e584655926e41426c2a5d15",
         "client_secret": "fd192986fc93475983541c7ff4634b18",
     }
@@ -81,7 +81,7 @@ def create_user(request):
         'client_id': 'e66d17b67e584655926e41426c2a5d15',
         'client_secret': 'fd192986fc93475983541c7ff4634b18',
         'response_type': 'code',
-        'redirect_uri': 'http://localhost:8000/users/callback',
+        'redirect_uri': 'http://95.85.31.26/users/callback',
         # 'redirect_uri': 'cirkelapp.com/users/callback',
         # 'redirect_uri': 'http://95.85.31.26/users/callback',
         'scope': 'user-library-read user-read-private user-read-currently-playing user-read-recently-played playlist-modify-public playlist-modify-private',
