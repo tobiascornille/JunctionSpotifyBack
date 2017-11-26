@@ -27,10 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['95.85.31.26','localhost']
 
-
-CORS_ORIGIN_ALLOW_ALL=True
-
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -128,4 +124,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_WHITELIST = (
+    'http://95.85.31.26/',
+)
