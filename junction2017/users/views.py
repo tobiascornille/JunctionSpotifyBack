@@ -51,9 +51,8 @@ def authentication_spotify(request):
         new_user.preview_url = track['preview_url']
 
     new_user.save()
-
     return redirect('https://sebastianjvf.github.io/junction-spotify-front/', {'user_id':user_id})
-
+    # return redirect("/users", {'user_id':user_id})
 
 # GET request endpoint: users/ID&lat&lon
 def user_data(request, user_id):
@@ -72,7 +71,11 @@ def user_data(request, user_id):
     json_output['current_track_name'] = get_current_track_name(current_user.user_id)
     json_output['current_track_color'] = get_colour(current_user.user_id, current_user.current_track_id)
     json_output['url_preview'] = current_user.preview_url
-    return HttpResponse(json.dumps(json_output))
+
+    # adding CORS headers
+    response = HttpResponse(json.dumps(json_output))
+    response['Access-Control-Allow-Origin'] = "localhost"
+    return response
 
 # POST request endpoint: users/
 def create_user(request):
