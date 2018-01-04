@@ -132,14 +132,16 @@ STATICFILES_DIRS = [
 
 CORS_ORIGIN_WHITELIST = (
     'localhost',
+    'https://accounts.spotify.com',
 )
 
 CORS_ALLOW_METHODS = (
     'GET',
+    'POST',
 )
 
 CORS_ALLOW_HEADERS = default_headers
 
-CSRF_TRUSTED_ORIGINS = (
-    'localhost/cirkel',
-)
+# CSRF_TRUSTED_ORIGINS = (
+#     'localhost/cirkel',
+# )

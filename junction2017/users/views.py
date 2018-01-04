@@ -7,13 +7,12 @@ import math
 import colorsys
 import requests
 from django.shortcuts import redirect
+import webbrowser
+from django.shortcuts import render
 
 
 def authentication_spotify(request):
     code = request.GET.get('code',None)
-    print("code")
-    print(code)
-    print()
 
     payload = {
         "grant_type": "authorization_code",
@@ -28,11 +27,7 @@ def authentication_spotify(request):
     }
 
     r = requests.post("https://accounts.spotify.com/api/token", data=payload, headers=headers)
-
     token = r.json()["access_token"]
-    print("token")
-    print(token)
-    print()
 
     spotify = spotipy.Spotify(auth=token)
 
@@ -51,8 +46,9 @@ def authentication_spotify(request):
         new_user.preview_url = track['preview_url']
 
     new_user.save()
-    return redirect('https://sebastianjvf.github.io/junction-spotify-front/', {'user_id':user_id})
+    # return redirect('https://sebastianjvf.github.io/junction-spotify-front/', {'user_id':user_id})
     # return redirect("/users", {'user_id':user_id})
+    return HttpResponse(user_id)
 
 # GET request endpoint: users/ID&lat&lon
 def user_data(request, user_id):
@@ -74,26 +70,25 @@ def user_data(request, user_id):
 
     # adding CORS headers
     response = HttpResponse(json.dumps(json_output))
-    response['Access-Control-Allow-Origin'] = "localhost"
+    response['Access-Control-Allow-Origin'] = "localhost, accounts.spotify.com"
     return response
 
 # POST request endpoint: users/
 def create_user(request):
-    print("hey")
+
     payload = {
         'client_id': 'e66d17b67e584655926e41426c2a5d15',
         'client_secret': 'fd192986fc93475983541c7ff4634b18',
         'response_type': 'code',
         'redirect_uri': 'http://localhost:8000/users/callback',
-        # 'redirect_uri': 'cirkelapp.com/users/callback',
-        # 'redirect_uri': 'http://95.85.31.26/users/callback',
         'scope': 'user-library-read user-read-private user-read-currently-playing user-read-recently-played playlist-modify-public playlist-modify-private',
-        'show_dialog': 'true'
+        'show_dialog': 'true',
     }
     r = requests.get('https://accounts.spotify.com/authorize', params=payload)
-    print("redirect to")
     print(r.url)
-    return(redirect(r.url))
+    webbrowser.open(r.url)
+    # return redirect(r.url)
+    return redirect('www.google.be')
 
 # PUT request endpoint: users/update
 def update_user(request):
