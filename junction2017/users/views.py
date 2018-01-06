@@ -85,10 +85,7 @@ def create_user(request):
         'show_dialog': 'true',
     }
     r = requests.get('https://accounts.spotify.com/authorize', params=payload)
-    print(r.url)
-    webbrowser.open(r.url)
-    # return redirect(r.url)
-    return redirect('www.google.be')
+    return redirect(r.url)
 
 # PUT request endpoint: users/update
 def update_user(request):
@@ -135,7 +132,6 @@ def get_nearest_users(current_user_id):
         closest_user = None
         for user in users:
             if user.user_id != current_user.user_id and user not in nearest_users:
-                print("ik ben hier")
                 distance = distance_between(current_user, user)
                 if distance < min_distance:
                     min_distance = distance
