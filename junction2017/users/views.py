@@ -11,22 +11,35 @@ import webbrowser
 from django.shortcuts import render
 
 
+CLIENT_ID = 'e66d17b67e584655926e41426c2a5d15'
+CLIENT_SECRET = 'fd192986fc93475983541c7ff4634b18'
+REDIRECT_URI = 'http://localhost:8000/users/callback'
+
+FRONTEND_REDIRECT = 'http://localhost/cirkelapp/app.html'
+
+CALLBACK_URL = 'http://localhost:8000/users/callback'
+SPOTIFY_AUTH_URL = 'https://accounts.spotify.com/authorize'
+SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token'
+
+
+
+
 def authentication_spotify(request):
     code = request.GET.get('code',None)
 
     payload = {
         "grant_type": "authorization_code",
         "code": code,
-        "redirect_uri": "http://localhost:8000/users/callback",
-        "client_id": "e66d17b67e584655926e41426c2a5d15",
-        "client_secret": "fd192986fc93475983541c7ff4634b18",
+        "redirect_uri": CALLBACK_URL,
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET
     }
 
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
     }
 
-    r = requests.post("https://accounts.spotify.com/api/token", data=payload, headers=headers)
+    r = requests.post(SPOTIFY_TOKEN_URL, data=payload, headers=headers)
     token = r.json()["access_token"]
 
     spotify = spotipy.Spotify(auth=token)
@@ -48,7 +61,7 @@ def authentication_spotify(request):
     new_user.save()
     # return redirect('https://sebastianjvf.github.io/junction-spotify-front/', {'user_id':user_id})
     # return redirect("/users", {'user_id':user_id})
-    return HttpResponse(user_id)
+    return redirect(FRONTEND_REDIRECT)
 
 # GET request endpoint: users/ID&lat&lon
 def user_data(request, user_id):
@@ -78,13 +91,13 @@ def create_user(request):
 
     payload = {
         'client_id': 'e66d17b67e584655926e41426c2a5d15',
-        'client_secret': 'fd192986fc93475983541c7ff4634b18',
         'response_type': 'code',
-        'redirect_uri': 'http://localhost:8000/users/callback',
+        'redirect_uri': CALLBACK_URL,
         'scope': 'user-library-read user-read-private user-read-currently-playing user-read-recently-played playlist-modify-public playlist-modify-private',
         'show_dialog': 'true',
     }
-    r = requests.get('https://accounts.spotify.com/authorize', params=payload)
+    r = requests.get(SPOTIFY_AUTH_URL, params=payload)
+    print(r.url)
     return redirect(r.url)
 
 # PUT request endpoint: users/update
