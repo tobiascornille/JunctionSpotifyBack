@@ -13,11 +13,11 @@ from django.shortcuts import render
 
 CLIENT_ID = 'e66d17b67e584655926e41426c2a5d15'
 CLIENT_SECRET = 'fd192986fc93475983541c7ff4634b18'
-REDIRECT_URI = 'https://cirkelapp.heroku.com/users/callback'
+REDIRECT_URI = 'https://cirkelapp.herokuapp.com/users/callback'
 
 FRONTEND_REDIRECT = 'http://localhost/cirkelapp/app.html'
 
-CALLBACK_URL = 'http://cirkelapp.heroku.com/users/callback'
+CALLBACK_URL = 'http://cirkelapp.herokuapp.com/users/callback'
 SPOTIFY_AUTH_URL = 'https://accounts.spotify.com/authorize'
 SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token'
 
